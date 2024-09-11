@@ -12,6 +12,7 @@ pipeline = transformers.pipeline(
     model_kwargs={"torch_dtype": torch.bfloat16},
     device_map="auto",
 )
+# <eos bos>
 
 messages = [
     {"role": "system", "content": "You are a helpful assistant."},
@@ -25,15 +26,15 @@ outputs = pipeline(
 print(outputs[0]["generated_text"][-1])
 
 
-# def conversation(outputs, prompt):
-#     prompt_input={"role":"user", "content": prompt}
-#     outputs[0]["generated_text"].append(prompt_input)
-#     outputs=pipeline(
-#         outputs[0]["generated_text"],
-#         max_new_tokens=512,
-#     )
-#     print(outputs[0]["generated_text"][-1])
-#     return outputs
+def conversation(outputs, prompt):
+    prompt_input={"role":"user", "content": prompt}
+    outputs[0]["generated_text"].append(prompt_input)
+    outputs=pipeline(
+        outputs[0]["generated_text"],
+        max_new_tokens=512,
+    )
+    print(outputs[0]["generated_text"][-1])
+    return outputs
 
 
 # def eval(prompt):
@@ -51,12 +52,12 @@ print(outputs[0]["generated_text"][-1])
 
 
 
-# while(1):
-#     prompt=input("ask me for anything\n")
-#     if prompt == "q":
-#         outputs = conversation(outputs, prompt)
-#     else:
-#         break
+while(1):
+    prompt=input("ask me for anything\n")
+    if prompt == "q":
+        outputs = conversation(outputs, prompt)
+    else:
+        break
 
 
 

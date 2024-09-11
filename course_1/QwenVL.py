@@ -1,15 +1,11 @@
 from transformers import Qwen2VLForConditionalGeneration, AutoTokenizer, AutoProcessor
-from qwen_vl_utils import process_vision_info
 import torch
-
+from qwen_vl_utils import process_vision_info
 
 # default: Load the model on the available device(s)
 model = Qwen2VLForConditionalGeneration.from_pretrained(
-    "Qwen/Qwen2-VL-7B-Instruct", bf16=True, device_map="auto"
+    "Qwen/Qwen2-VL-2B-Instruct", torch_dtype=torch.bfloat16, device_map="auto"
 )
-
-print(torch.cuda.memory_summary())
-
 
 # We recommend enabling flash_attention_2 for better acceleration and memory saving, especially in multi-image and video scenarios.
 # model = Qwen2VLForConditionalGeneration.from_pretrained(
@@ -20,7 +16,7 @@ print(torch.cuda.memory_summary())
 # )
 
 # default processer
-processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-7B-Instruct")
+processor = AutoProcessor.from_pretrained("Qwen/Qwen2-VL-2B-Instruct")
 
 # The default range for the number of visual tokens per image in the model is 4-16384. You can set min_pixels and max_pixels according to your needs, such as a token count range of 256-1280, to balance speed and memory usage.
 # min_pixels = 256*28*28
@@ -33,13 +29,12 @@ messages = [
         "content": [
             {
                 "type": "image",
-                "image": "/nfs/cyzhu/AI_Design_2H2024/course_1/IMG_6596.jpg",
+                "image": "/nfs/cyzhu/AI_Design_2H2024/course_1/IMG_6647_resized.jpg",
             },
-            {"type": "text", "text": "Describe this image."},
+            {"type": "text", "text": "how many people are in this image?"},
         ],
     }
 ]
-print(torch.cuda.memory_summary())
 
 # Preparation for inference
 text = processor.apply_chat_template(
@@ -64,4 +59,6 @@ output_text = processor.batch_decode(
     generated_ids_trimmed, skip_special_tokens=True, clean_up_tokenization_spaces=False
 )
 print(output_text)
+
+
 
