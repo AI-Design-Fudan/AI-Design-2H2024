@@ -1,0 +1,1 @@
+course_2/nanoGPT/out-shakespeare-char/ckpt.pt filter=lfs diff=lfs merge=lfs -text
