@@ -18,6 +18,7 @@ Please note that the example uses the LLaMa 3.1 8B Instruct model. This model re
 ```commandline
 cd course_1
 cd eval
+git clone https://github.com/EleutherAI/lm-evaluation-harness.git
 cd lm-evaluation-harness
 lm_eval --model hf \
     --model_args meta-llama/Meta-Llama-3.1-8B-Instruct \
