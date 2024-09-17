@@ -8,7 +8,7 @@ import torch
 def train_model(fname, prefix):
     spm.SentencePieceTrainer.train(
         input=fname, model_prefix=prefix, vocab_size=16000,)
-        # user_defined_symbols=['侠之大者', '为国为民'])
+
 
 def load_file_into_splits(text_file, split_ratio):
     with open(text_file, 'r') as file:
@@ -23,11 +23,13 @@ def load_tokenizer(model_file):
     else:
         return True, sp
 
+
 def encode_and_save(sp, content, prefix):
     token_ids = sp.encode(content, out_type=int)
     print(f"data split of {prefix} has {len(token_ids)} tokens")
     token_ids = np.array(token_ids, dtype=np.int32)
     token_ids.tofile(os.path.join(os.path.dirname(__file__), "{}.dat".format(prefix)))
+
 
 def gen_dataset(text_file, model_file):
     flag, sp = load_tokenizer(model_file)
@@ -49,7 +51,7 @@ def get_batch(data):
     return x, y
 
 def test_samples():
-    train_data = np.memmap(os.path.join("../../../../PycharmProjects/AI_Course_2024/materials", 'train.dat'), dtype=np.int32, mode='r')
+    train_data = np.memmap(os.path.join("./materials", 'train.dat'), dtype=np.int32, mode='r')
     x, y = get_batch(train_data)
 
     model_file = "bird_shooter.model"
@@ -65,6 +67,6 @@ def test_samples():
 
 
 if __name__ == '__main__':
-    train_model("../materials/bird_couple.txt", "bird_couple")
-    gen_dataset("../../../../PycharmProjects/AI_Course_2024/materials/bird_couple.txt", "bird_couple.model")
+    train_model("./tale.txt", "tale")
+    gen_dataset("./tale.txt", "tale.model")
     # test_samples()

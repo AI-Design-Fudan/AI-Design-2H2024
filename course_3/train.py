@@ -56,7 +56,7 @@ def main():
     # load tokenizer
     from data_set import load_tokenizer
 
-    model_file = "bird_couple.model"
+    model_file = "tale.model"
     flag, sp = load_tokenizer(model_file)
     if not flag:
         print(f"load tokenizer model from: {model_file} failed")
