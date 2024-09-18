@@ -5,9 +5,9 @@ import numpy as np
 model = gensim.downloader.load("glove-wiki-gigaword-50")
 
 # 计算经典的例子
-result_vector = model["father"] - model["man"] + model["woman"]
+# result_vector = model["father"] - model["man"] + model["woman"]
 # result_vector = model["king"] - model["man"] + model["woman"]
-# result_vector = model["nephew"] + model["woman"] - model["man"]
+result_vector = model["nephew"] + model["woman"] - model["man"]
 
 
 # 找出与结果向量最接近的词
