@@ -31,11 +31,42 @@ You may also replace the model name with your own model.
 The `task` value specifies the dataset you use to evaluate your model.  
   
 ### Course_2
-Course_2 will help you dive into the basics of how transformers get data ready for action. We'll cover how tokenizer and embedding work together to prep data, making it just right for transformers to use. It's all about turning words into a form that computers can understand and work with.
+Course_2 will help you dive into the basics of how transformers get data ready for action. We'll cover how tokenizer and embedding work together to prep data, making it just right for transformers to use. It's all about turning words into a form that computers can understand and work with.  
+Since we already finished course_2, you guys can try the code we present during the class.  
+Modify the words in `embedding_game.py` and run it, see how words related to each others.  
+Run `Course_tokenizer_embedding.ipnb` to see how a txt file can be processed and generated a vocab file, and use TSNE in sklearn lib to see the relations of each word.
+You may also want to play the game we generated in the class, feel free to do so.
+```commandline
+python o1_game.py
+```
 
-[//]: # (### Course_3)
 
-[//]: # (Course_3 will assist you explore the full structure of realized transformers in this brief overview, where we'll cover everything from tokenization to attention mechanisms. Get a clear view of how these components work together to do text processing.)
+
+
+### Course_3
+
+Course_3 will assist you explore the full structure of realized transformers in this brief overview, where we'll cover everything from tokenization to attention mechanisms. Get a clear view of how these components work together to do text processing.
+You could run `data_set.py` to generate vocab file and split the training and testing data.
+```commandline
+python data_set.py
+```
+File structure will be like:
+```commandline
+course_3/
+├── data_set.py
+├── gpt_model.py
+├── train.py
+├── train.dat
+├── test.dat
+└── tale.txt
+```  
+You can run `gpt_model.py` to see a summary of the transformers structure we build. Also you can modify the training data by input more text to `tale.txt` file.
+After everything ready, we can start training by:  
+```commandline
+python train.py
+```  
+During the training, you will see a training loss visualization.
+
 
 [//]: # ()
 [//]: # (### related papers)

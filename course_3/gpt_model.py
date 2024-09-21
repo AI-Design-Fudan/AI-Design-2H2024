@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from torchinfo import summary
 
+
 class GPTConfig:
     vocab_size: int = 16000
     seq_len: int = 128
@@ -101,8 +102,8 @@ class Block(nn.Module):
         self.ffn = FeedFoward(config)
 
     def forward(self, x, visualize_attention=False):
-        x = x + self.attn(self.ln1(x), visualize_attention=visualize_attention)
-        x = x + self.ffn(self.ln2(x))
+        x = x + self.attn(self.ln1(x), visualize_attention=visualize_attention)    #
+        x = x + self.ffn(self.ln2(x))                                              #
         return x
 
 
@@ -155,6 +156,7 @@ class GPTModel(nn.Module):
             seq_next = torch.multinomial(probs, num_samples=1)
             seq = torch.cat((seq, seq_next), dim=1)
         return seq
+
 
 def main():
     config = GPTConfig()
