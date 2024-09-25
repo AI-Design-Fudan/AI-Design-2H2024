@@ -1,7 +1,5 @@
 absl-py==2.1.0
 accelerate==0.27.2
-aiohttp @ file:///private/var/folders/nz/j6p8yfhx1mv_0grj5xl4650h0000gp/T/abs_b1m9c8aqie/croot/aiohttp_1707342290832/work
-aiosignal @ file:///tmp/build/80754af9/aiosignal_1637843061372/work
 altair==5.4.1
 anyio @ file:///private/var/folders/k1/30mswbxs7r1g6zwn8y4fyt500000gp/T/abs_a17a7759g2/croot/anyio_1706220182417/work
 appnope @ file:///Users/ktietz/demo/mc3/conda-bld/appnope_1629146036738/work
