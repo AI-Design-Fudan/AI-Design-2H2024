@@ -102,11 +102,11 @@ class Block(nn.Module):
         self.ffn = FeedFoward(config)
 
     def forward(self, x, visualize_attention=False):
-        x = self.ln1(x)
-        x = x + self.attn(x, visualize_attention=visualize_attention)    #
-        x = self.ln2(x)
-        x = x + self.ffn()                                              #
-        # x = x + self.ffn(self.ln2(x))                                              #
+        # x = self.ln1(x)
+        x = x + self.attn(self.ln1(x), visualize_attention=visualize_attention)    #
+        # x = self.ln2(x)
+        # x = x + self.ffn(x)
+        x = x + self.ffn(self.ln2(x))                                              #
         return x
 
 

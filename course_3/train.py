@@ -10,7 +10,7 @@ from tqdm import tqdm  # 引入 tqdm 库
 device = 'cuda' if torch.cuda.is_available() else 'mps'
 
 learning_rate = 1e-3
-max_iters = 5000
+max_iters = 50000
 
 train_data = np.memmap('./train.dat', dtype=np.int32, mode='r')
 test_data = np.memmap('./test.dat', dtype=np.int32, mode='r')
