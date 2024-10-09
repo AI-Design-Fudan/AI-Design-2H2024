@@ -7,11 +7,11 @@ import torch
 
 def train_model(fname, prefix):
     spm.SentencePieceTrainer.train(
-        input=fname, model_prefix=prefix, vocab_size=16000, )
+        input=fname, model_prefix=prefix, vocab_size=50000, )
 
 
 def load_file_into_splits(text_file, split_ratio):
-    with open(text_file, 'r') as file:
+    with open(text_file, 'r', encoding='utf-8') as file:  # 指定编码为 utf-8
         data = file.read()
     split_idx = int(len(data) * split_ratio)
     return data[:split_idx], data[split_idx:]

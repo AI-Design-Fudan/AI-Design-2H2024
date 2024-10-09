@@ -8,11 +8,11 @@ from torchinfo import summary
 
 
 class GPTConfig:
-    vocab_size: int = 16000
-    seq_len: int = 128
-    d_model: int = 128
-    n_layer: int = 4
-    n_head: int = 4
+    vocab_size: int = 50000
+    seq_len: int = 256
+    d_model: int = 256
+    n_layer: int = 8
+    n_head: int = 8
     bias: bool = True
     dropout: float = 0.0
 
@@ -50,7 +50,7 @@ class SelfAttention(nn.Module):
         self.register_buffer("mask", torch.tril(torch.ones(config.seq_len, config.seq_len))
                              .view(1, 1, config.seq_len, config.seq_len))
 
-    def forward(self, x, visualize_attention=False):  # 新增参数：visualize_attention
+    def forward(self, x, visualize_attention=False):
         B, C, E = x.size()
         q, k, v = self.attn(x).split(self.d_model, dim=2)
         q = q.view(B, C, self.n_head, E // self.n_head).transpose(1, 2)
@@ -61,7 +61,6 @@ class SelfAttention(nn.Module):
         att = att.masked_fill(self.mask[:, :, :C, :C] == 0, float('-inf'))
         att = F.softmax(att, dim=-1)
 
-        # 可视化注意力矩阵，但仅在需要时
         if visualize_attention:
             plt.figure(figsize=(10, 8))
             sns.heatmap(att[0][0].cpu().detach().numpy(), cmap="viridis")
@@ -75,7 +74,7 @@ class SelfAttention(nn.Module):
         return self.proj(y)
 
 
-class FeedFoward(nn.Module):
+class FeedForward(nn.Module):
     """ a two-layers mlp """
     def __init__(self, config):
         super().__init__()
@@ -99,14 +98,11 @@ class Block(nn.Module):
         self.ln1 = nn.LayerNorm(config.d_model, bias=config.bias)
         self.attn = SelfAttention(config)
         self.ln2 = nn.LayerNorm(config.d_model, bias=config.bias)
-        self.ffn = FeedFoward(config)
+        self.ffn = FeedForward(config)
 
     def forward(self, x, visualize_attention=False):
-        # x = self.ln1(x)
-        x = x + self.attn(self.ln1(x), visualize_attention=visualize_attention)    #
-        # x = self.ln2(x)
-        # x = x + self.ffn(x)
-        x = x + self.ffn(self.ln2(x))                                              #
+        x = x + self.attn(self.ln1(x), visualize_attention=visualize_attention)
+        x = x + self.ffn(self.ln2(x))
         return x
 
 
@@ -127,18 +123,18 @@ class GPTModel(nn.Module):
 
     def _init_weights(self, module):
         if isinstance(module, nn.Linear):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+            torch.nn.init.xavier_uniform_(module.weight)
             if module.bias is not None:
                 torch.nn.init.zeros_(module.bias)
         elif isinstance(module, nn.Embedding):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
 
     def forward(self, features, targets=None, visualize_attention=False):
-        tok_emb = self.tok_embed_table(features)  # B, C, E
-        pos_emb = self.pos_embed_table(tok_emb)  # 1, C, E
-        x = tok_emb + pos_emb   # B, C, E
+        tok_emb = self.tok_embed_table(features)
+        pos_emb = self.pos_embed_table(tok_emb)
+        x = tok_emb + pos_emb
         for block in self.decoder_blocks:
-            x = block(x, visualize_attention=visualize_attention)  # 添加 visualize_attention 传递
+            x = block(x, visualize_attention=visualize_attention)
 
         x = self.layer_norm(x)
         logits = self.final_linear(x)
@@ -150,12 +146,12 @@ class GPTModel(nn.Module):
         return logits, loss
 
     @torch.no_grad()
-    def generate(self, seq, max_new_tokens, visualize_attention=False):
+    def generate(self, seq, max_new_tokens, visualize_attention=False, temperature=1.0):
         for _ in range(max_new_tokens):
             seq = seq[:, -self.config.seq_len:]
-            logits, _ = self.forward(seq, visualize_attention=visualize_attention)  # 调用forward时传递 visualize_attention 参数
+            logits, _ = self.forward(seq, visualize_attention=visualize_attention)
             logits = logits[:, -1, :]
-            probs = F.softmax(logits, dim=-1)
+            probs = F.softmax(logits / temperature, dim=-1)
             seq_next = torch.multinomial(probs, num_samples=1)
             seq = torch.cat((seq, seq_next), dim=1)
         return seq
@@ -164,8 +160,7 @@ class GPTModel(nn.Module):
 def main():
     config = GPTConfig()
     model = GPTModel(config)
-    summary(model, input_size=[(100, config.seq_len), (100, config.seq_len)],
-            dtypes=[torch.long, torch.long])
+    summary(model, input_size=(100, config.seq_len), dtypes=[torch.long])
 
 
 if __name__ == '__main__':

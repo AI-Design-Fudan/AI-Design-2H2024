@@ -10,7 +10,7 @@ from tqdm import tqdm  # 引入 tqdm 库
 device = 'cuda' if torch.cuda.is_available() else 'mps'
 
 learning_rate = 1e-3
-max_iters = 50000
+max_iters = 400000
 
 train_data = np.memmap('./train.dat', dtype=np.int32, mode='r')
 test_data = np.memmap('./test.dat', dtype=np.int32, mode='r')
@@ -30,6 +30,8 @@ def get_batch(split, config):
 
 def train(config, model):
     optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
+    # 使用余弦退火调度器
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max_iters, eta_min=1e-6)
     losses = []
 
     # 创建一个实时绘制的图形
@@ -52,7 +54,7 @@ def train(config, model):
             losses.append(loss.item())
 
             if (iter_num + 1) % 100 == 0:
-                print(f"[train_info] iter:{iter_num + 1:5d}, loss:{loss.item():5.3f}")
+                print(f"[train_info] iter:{iter_num + 1:5d}, loss:{loss.item():5.3f}, lr:{scheduler.get_last_lr()[0]:.6f}")
 
                 # 更新图形
                 line.set_data(range(len(losses)), losses)
@@ -66,6 +68,8 @@ def train(config, model):
 
             # update weights
             optimizer.step()
+            # 更新学习率
+            scheduler.step()
 
             # 更新进度条
             pbar.update(1)
@@ -73,6 +77,10 @@ def train(config, model):
     plt.ioff()  # 关闭实时模式
     plt.show()  # 显示最终图形
     print(f"final loss: {loss.item()}")
+
+    # 保存模型
+    torch.save(model.state_dict(), '.\\gpt_model.pth')
+    print("Model saved to ./gpt_model.pth")
 
 
 def main():
