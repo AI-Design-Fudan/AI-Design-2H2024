@@ -1,5 +1,3 @@
-# continue_training.py
-
 import os
 import torch
 import torch.nn as nn
@@ -41,7 +39,7 @@ class WikiTextDataset(Dataset):
         return torch.tensor(x, dtype=torch.long), torch.tensor(y, dtype=torch.long)
 
 # 加载 wikitext-2 数据集
-dataset = load_dataset('wikitext', 'wikitext-2-v1')
+dataset = load_dataset('wikitext', 'wikitext-103-v1')
 train_texts = dataset['train']['text']
 
 # 创建数据集和数据加载器

@@ -1,5 +1,3 @@
-# infer.py
-
 import torch
 from model import GPT, GPTConfig
 from transformers import GPT2Tokenizer
@@ -45,6 +43,6 @@ def generate_text(prompt, max_new_tokens=50, temperature=1.0, top_k=None):
 # 示例用法
 if __name__ == '__main__':
     prompt = "Once upon a time"
-    generated_text = generate_text(prompt, max_new_tokens=100)
+    generated_text = generate_text(prompt, max_new_tokens=200)
     print("输入提示：", prompt)
     print("生成文本：", generated_text)
