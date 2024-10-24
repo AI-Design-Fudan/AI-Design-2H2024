@@ -1,105 +1,105 @@
-import torch
+# continue_training.py
+
 import os
-from torch import nn
-from transformers import GPT2Config, AdamW, GPT2TokenizerFast
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, Dataset
+from model import GPT, GPTConfig
+
+# 使用 Hugging Face 的 datasets 库加载 wikitext-2 数据集
 from datasets import load_dataset
-from torch.utils.data import DataLoader
-from torch.nn.utils.rnn import pad_sequence
+from transformers import GPT2Tokenizer
+
+# 导入 tqdm 库
 from tqdm import tqdm
 
-# 导入模型
-from model import SimpleGPT2
+# 加载 GPT-2 分词器
+tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
-# 检查 CUDA 是否可用
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+# 定义数据集类
+class WikiTextDataset(Dataset):
+    def __init__(self, texts, block_size, tokenizer):
+        self.block_size = block_size
+        self.tokenizer = tokenizer
+        self.examples = []
 
-# 设置 CUDA_LAUNCH_BLOCKING=1 以调试 CUDA 错误
-os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
+        # 将所有文本连接在一起，然后进行分块
+        full_text = "\n\n".join(texts)
+        tokens = tokenizer.encode(full_text)
 
-# 定义保存模型的目录
-output_dir = "./GPT2_trained"
+        # 创建输入和目标序列
+        for i in range(0, len(tokens) - block_size, block_size):
+            x = tokens[i:i + block_size]
+            y = tokens[i + 1:i + block_size + 1]
+            self.examples.append((x, y))
 
-# 加载保存的 tokenizer 和配置文件
-tokenizer = GPT2TokenizerFast.from_pretrained(output_dir)
-config = GPT2Config.from_pretrained(output_dir)
+    def __len__(self):
+        return len(self.examples)
 
-# 创建模型实例并加载保存的状态字典
-model = SimpleGPT2(config).to(device)
-model.load_state_dict(torch.load(os.path.join(output_dir, "pytorch_model.bin")))
+    def __getitem__(self, idx):
+        x, y = self.examples[idx]
+        return torch.tensor(x, dtype=torch.long), torch.tensor(y, dtype=torch.long)
 
-# 准备数据集
-dataset = load_dataset("wikitext", "wikitext-2-v1", split='train')
+# 加载 wikitext-2 数据集
+dataset = load_dataset('wikitext', 'wikitext-2-v1')
+train_texts = dataset['train']['text']
 
-# 准备数据
-def tokenize_function(examples):
-    return tokenizer(examples['text'], padding="max_length", truncation=True, max_length=128)
+# 创建数据集和数据加载器
+block_size = 1024  # 与之前的训练保持一致
+train_dataset = WikiTextDataset(train_texts, block_size, tokenizer)
+train_dataloader = DataLoader(train_dataset, batch_size=1, shuffle=True)  # 根据内存情况调整 batch_size
 
-# 进行数据预处理
-tokenized_datasets = dataset.map(tokenize_function, batched=True)
+# 初始化模型配置，使用与之前相同的参数
+config = GPTConfig(
+    vocab_size=50304,     # GPT-2 vocab_size of 50257, padded up to nearest multiple of 64 for efficiency
+    block_size=1024,
+    n_layer=12,
+    n_head=12,
+    n_embd=768,
+    dropout=0.0,
+    bias=True
+)
+model = GPT(config)
 
-# 移除 'text' 列
-tokenized_datasets = tokenized_datasets.remove_columns(["text"])
+# 加载之前训练的模型权重
+model_load_path = './GPT2_trained/trained_gpt_model_final.pth'
+model.load_state_dict(torch.load(model_load_path))
 
-# 创建一个 collate 函数
-def collate_fn(batch):
-    input_ids = [torch.tensor(example['input_ids']) for example in batch]
-    input_ids_padded = pad_sequence(input_ids, batch_first=True, padding_value=tokenizer.pad_token_id)
-    return {
-        'input_ids': input_ids_padded.to(device),
-    }
+# 将模型移动到 GPU（如果可用）
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = model.to(device)
 
-# 设置训练参数
-train_args = {
-    "batch_size": 32,
-    "learning_rate": 5e-5,
-    "num_epochs": 10,  # 继续训练一个 epoch
-}
+# 定义优化器和损失函数
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
+criterion = nn.CrossEntropyLoss()
 
-# 创建 DataLoader
-train_loader = DataLoader(tokenized_datasets, batch_size=train_args['batch_size'], shuffle=True, collate_fn=collate_fn)
+# 创建保存模型的目录
+save_dir = './GPT2_trained'
+os.makedirs(save_dir, exist_ok=True)
 
-# 定义优化器
-optimizer = AdamW(model.parameters(), lr=train_args['learning_rate'])
-
-# 开始继续训练
+# 继续训练循环
+epochs = 1  # 您可以根据需要调整训练轮数
 model.train()
-total_loss = 0
-epoch = 0  # 从第 1 个 epoch 开始
-print(f"Starting epoch {epoch + 1}")
-for step, batch in enumerate(tqdm(train_loader, desc=f"Epoch {epoch + 1}", unit="batch")):
-    input_ids = batch['input_ids']
+for epoch in range(epochs):
+    total_loss = 0
+    progress_bar = tqdm(enumerate(train_dataloader), total=len(train_dataloader), desc=f"Epoch {epoch + 1}/{epochs}")
+    for batch_idx, (x, y) in progress_bar:
+        x = x.to(device)
+        y = y.to(device)
 
-    # 前向传播
-    outputs = model(input_ids)
+        optimizer.zero_grad()
+        logits, loss = model(x, y)
+        loss.backward()
+        optimizer.step()
 
-    # 将 labels 右移一位
-    labels = input_ids[:, 1:].clone()
-    labels[labels == tokenizer.pad_token_id] = -100  # 使用 -100 来忽略这些位置的损失计算
+        total_loss += loss.item()
 
-    # 调整 outputs，使其与 labels 对齐
-    outputs = outputs[:, :-1, :]
+        # 更新进度条描述
+        avg_loss = total_loss / (batch_idx + 1)
+        progress_bar.set_postfix(loss=avg_loss)
 
-    # 计算损失
-    loss_fct = nn.CrossEntropyLoss(ignore_index=-100)
-    loss = loss_fct(outputs.reshape(-1, outputs.size(-1)), labels.reshape(-1))
 
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
-
-    total_loss += loss.item()
-
-    # 每 5 步输出一次 loss
-    if step % 5 == 0:
-        print(f"Step {step}, Loss: {loss.item()}")
-
-avg_loss = total_loss / len(train_loader)
-print(f"Epoch: {epoch + 1}, Average Loss: {avg_loss}")
-
-# 保存模型
-os.makedirs(output_dir, exist_ok=True)
-torch.save(model.state_dict(), os.path.join(output_dir, "pytorch_model.bin"))
-tokenizer.save_pretrained(output_dir)
-config.save_pretrained(output_dir)
-
-print("模型训练完成并已保存。")
+# 最后保存最终模型
+final_model_save_path = os.path.join(save_dir, 'trained_gpt_model_final.pth')
+torch.save(model.state_dict(), final_model_save_path)
+print(f"最终模型已保存到 '{final_model_save_path}'")
