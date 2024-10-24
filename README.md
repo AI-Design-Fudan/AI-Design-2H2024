@@ -68,6 +68,17 @@ python train.py
 During the training, you will see a training loss visualization.
 
 
+
+### Course_4
+We uploaded a example training file on branch ```gpt2```
+You can try ```python gpt2.py``` start your training, also when you finished your first training, you can use ```python gpt2_inference.py``` to see your work.
+You may encounter some inference situation like:
+```commandline
+Generated text: The game  game the game game game game game game game game game game game game game game game game game game game game game game game game game game game game game game game game can game game game game game game game game game game game game game game game
+```
+This is totally normal. Training a pretrained model from zero is extremely hard for us. We need to feed in more data and have a longer training time to cover all the case to get a usable model. 
+So, figure out a way that how to train a model that can generate 10 reasonable sentence on your own.
+
 [//]: # ()
 [//]: # (### related papers)
 

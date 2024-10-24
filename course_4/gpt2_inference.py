@@ -146,14 +146,14 @@ model.to(device)
 model.eval()
 
 # 生成推理输入
-input_text = "The game began "
+input_text = "The game "
 input_ids = tokenizer.encode(input_text, return_tensors='pt').to(device)
 
 generated_text = input_text
 
 # 设置生成长度和采样参数
 max_length = 50
-temperature = 1.0
+temperature = 2.0
 top_k = 50
 
 def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float('Inf')):

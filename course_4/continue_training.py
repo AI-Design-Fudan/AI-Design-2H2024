@@ -52,7 +52,7 @@ def collate_fn(batch):
 train_args = {
     "batch_size": 32,
     "learning_rate": 5e-5,
-    "num_epochs": 1,  # 继续训练一个 epoch
+    "num_epochs": 10,  # 继续训练一个 epoch
 }
 
 # 创建 DataLoader
